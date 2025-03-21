@@ -11,6 +11,7 @@ public class DBUtil {
 
     public static Connection getConnection() throws SQLException {
         try {
+            Class.forName("org.postgresql.Driver");
             return DriverManager.getConnection(URL, USER, PASSWORD);
         } catch (Exception e) {
             e.printStackTrace();

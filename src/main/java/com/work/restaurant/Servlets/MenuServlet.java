@@ -1,5 +1,6 @@
 package com.work.restaurant.Servlets;
 
+import com.google.gson.Gson;
 import com.work.restaurant.Model.Category;
 import com.work.restaurant.Model.MenuItem;
 import com.work.restaurant.Utils.DBUtil;
@@ -19,7 +20,11 @@ import java.util.List;
 @WebServlet(name = "MenuServlet", urlPatterns = "/menu")
 public class MenuServlet extends HttpServlet {
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
         List<MenuItem> menuItems = new ArrayList<>();
 
         try (Connection conn = DBUtil.getConnection();
@@ -41,12 +46,7 @@ public class MenuServlet extends HttpServlet {
             throw new ServletException("Помилка отримання меню", e);
         }
 
-        request.setAttribute("menuItems", menuItems);
-        request.getRequestDispatcher("/menu.jsp").forward(request, response);
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
+        String json = new Gson().toJson(menuItems);
+        response.getWriter().write(json);
     }
 }

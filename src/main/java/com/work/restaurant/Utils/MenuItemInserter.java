@@ -25,7 +25,7 @@ public class MenuItemInserter {
                 stmt.setString(1, (String) item[0]);
                 stmt.setString(2, (String) item[1]);
                 stmt.setDouble(3, (Double) item[2]);
-                stmt.setString(4, ((Category) item[3]).name()); // Передаємо ENUM як рядок
+                stmt.setString(4, ((Category) item[3]).name());
 
                 stmt.executeUpdate();
             }
