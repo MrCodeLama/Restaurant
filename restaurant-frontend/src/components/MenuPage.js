@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Tabs, Tab, Box, Typography } from "@mui/material";
 import axios from "axios";
 
-const MenuTable = () => {
+const MenuPage  = () => {
     const [menuItems, setMenuItems] = useState([]);
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(0);
@@ -46,4 +46,4 @@ const MenuTable = () => {
     );
 };
 
-export default MenuTable;
+export default MenuPage ;

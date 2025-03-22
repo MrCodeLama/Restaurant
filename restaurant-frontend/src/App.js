@@ -1,16 +1,17 @@
-import React from "react";
-import MenuTable from "./components/MenuTable";
-import { Container, Typography } from "@mui/material";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import MenuPage from './components/MenuPage';
 
-function App() {
-    return (
-        <Container>
-            <Typography variant="h4" align="center" gutterBottom>
-                Меню ресторану
-            </Typography>
-            <MenuTable />
-        </Container>
-    );
-}
+const App = () => {
+  return (
+    
+      <Router>
+        <Routes>
+          <Route path="/" element={<MenuPage />} />
+          <Route path="*" element={<MenuPage />} /> {/* Обробка всіх інших маршрутів */}
+        </Routes>
+      </Router>
+  );
+};
 
 export default App;
