@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -25,9 +24,10 @@ public class TableServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        response.setHeader("Access-Control-Allow-Origin", "*");
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
 
         List<RestaurantTable> tables = new ArrayList<>();
 
@@ -36,7 +36,12 @@ public class TableServlet extends HttpServlet {
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                tables.add(new RestaurantTable(rs.getInt("id"), rs.getInt("table_number")));
+                int tableId = rs.getInt("id");
+                int tableNumber = rs.getInt("table_number");
+
+                boolean hasOrder = checkForOrder(conn, tableId);
+
+                tables.add(new RestaurantTable(tableId, tableNumber, hasOrder));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -48,5 +53,18 @@ public class TableServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
         out.print(json);
         out.flush();
+    }
+
+    private boolean checkForOrder(Connection conn, int tableId) throws Exception {
+        String query = "SELECT COUNT(*) FROM customerorder WHERE restauranttable = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, tableId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
     }
 }

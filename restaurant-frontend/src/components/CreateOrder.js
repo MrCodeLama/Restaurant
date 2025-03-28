@@ -1,23 +1,73 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Button, Grid, Paper } from "@mui/material";
+import { useParams, useNavigate } from "react-router-dom";
+import { Box, Typography, Button, List, ListItem, Checkbox, TextField } from "@mui/material";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const CreateOrder = () => {
   const { tableId } = useParams();
+  const navigate = useNavigate();
   const [menuItems, setMenuItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState({}); 
+  const {getAccessTokenSilently } = useAuth0();
 
   useEffect(() => {
-    // Fetch menu items for the table
-    axios
-      .get("http://localhost:8080/menu")
-      .then((response) => setMenuItems(response.data))
-      .catch((error) => console.error("Error fetching menu items:", error));
+    axios.get("http://localhost:8080/menu")
+      .then(response => setMenuItems(response.data))
+      .catch(error => console.error("Помилка отримання меню:", error));
   }, []);
 
+  const handleCheckboxChange = (id) => {
+    setSelectedItems((prev) => {
+      const updated = { ...prev };
+      if (updated[id]) {
+        delete updated[id]; 
+      } else {
+        updated[id] = 1; 
+      }
+      return updated;
+    });
+  };
+
+  const handleQuantityChange = (id, quantity) => {
+    setSelectedItems((prev) => {
+      const updated = { ...prev };
+      if (quantity > 0) {
+        updated[id] = quantity;
+      } else {
+        delete updated[id];
+      }
+      return updated;
+    });
+  };
+
   const handleCreateOrder = () => {
-    // Handle the order creation logic here
-    console.log("Creating order for table:", tableId);
+    if (Object.keys(selectedItems).length === 0) {
+      alert("Оберіть хоча б одну страву!");
+      return;
+    }
+
+    const requestData = {
+      tableId: parseInt(tableId, 10),
+      menuItemIds: Object.keys(selectedItems).map((key) => ({
+        menuItemId: parseInt(key),
+        quantity: selectedItems[key],
+      })),
+    };
+
+    console.log("🔍 Відправляємо запит:", requestData);
+    getAccessTokenSilently().then((token) => {
+      axios.post("http://localhost:8080/create-order", requestData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then(() => {
+        alert("Замовлення створене!");
+        navigate("/tables");
+      })
+      .catch(error => console.error("Помилка створення замовлення:", error));})
+    
   };
 
   return (
@@ -25,21 +75,28 @@ const CreateOrder = () => {
       <Typography variant="h4" gutterBottom>
         Створення замовлення для столика {tableId}
       </Typography>
-      <Grid container spacing={2}>
+      <List>
         {menuItems.map((item) => (
-          <Grid item key={item.id} xs={6} sm={4} md={3}>
-            <Paper sx={{ p: 2, textAlign: "center" }}>
-              <Typography variant="h6">{item.name}</Typography>
-              <Typography variant="body2">{item.description}</Typography>
-              <Typography variant="body1">Ціна: {item.price} грн</Typography>
-              <Button variant="contained" color="primary" onClick={handleCreateOrder}>
-                Додати до замовлення
-              </Button>
-            </Paper>
-          </Grid>
+          <ListItem key={item.id} sx={{ display: "flex", alignItems: "center" }}>
+            <Checkbox
+              checked={selectedItems[item.id] > 0}
+              onChange={() => handleCheckboxChange(item.id)}
+            />
+            {item.name} - {item.price} грн
+            {selectedItems[item.id] > 0 && (
+              <TextField
+                type="number"
+                value={selectedItems[item.id]}
+                onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value))}
+                label="Кількість"
+                sx={{ marginLeft: 2, width: 80 }}
+                inputProps={{ min: 1 }}
+              />
+            )}
+          </ListItem>
         ))}
-      </Grid>
-      <Button variant="contained" color="primary" sx={{ mt: 3 }} onClick={handleCreateOrder}>
+      </List>
+      <Button variant="contained" color="primary" onClick={handleCreateOrder}>
         Підтвердити замовлення
       </Button>
     </Box>

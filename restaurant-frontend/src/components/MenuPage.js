@@ -11,8 +11,6 @@ const MenuPage  = () => {
         axios.get("http://localhost:8080/menu")
             .then(response => {
                 setMenuItems(response.data);
-
-                // Отримуємо унікальні категорії
                 const uniqueCategories = [...new Set(response.data.map(item => item.category))];
                 setCategories(uniqueCategories);
             })

@@ -3,18 +3,6 @@
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
          version="6.0">
 
-    <!-- Оголошення сервлета -->
-    <servlet>
-        <servlet-name>MenuServlet</servlet-name>
-        <servlet-class>com.work.restaurant.Servlets.MenuServlet</servlet-class>
-    </servlet>
-
-    <!-- Мапінг сервлета -->
-    <servlet-mapping>
-        <servlet-name>MenuServlet</servlet-name>
-        <url-pattern>/menu</url-pattern>  <!-- Замість /menu вказуйте необхідний шаблон URL -->
-    </servlet-mapping>
-
     <resource-ref>
         <description>PostgreSQL DataSource</description>
         <res-ref-name>jdbc/Restaurant</res-ref-name>
@@ -22,14 +10,25 @@
         <res-auth>Container</res-auth>
     </resource-ref>
 
+
     <filter>
-        <filter-name>JwtFilter</filter-name>
+        <filter-name>CorsFilter</filter-name>
+        <filter-class>com.work.restaurant.Filters.CORSFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>CorsFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>AuthFilter</filter-name>
         <filter-class>com.work.restaurant.Filters.JwtFilter</filter-class>
     </filter>
-
     <filter-mapping>
-        <filter-name>JwtFilter</filter-name>
-        <url-pattern>/worker/*</url-pattern>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/tables/*</url-pattern>
+        <url-pattern>/table-order-details/*</url-pattern>
+        <url-pattern>/create-order/*</url-pattern>
     </filter-mapping>
 
 
