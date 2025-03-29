@@ -25,11 +25,10 @@ import java.util.logging.Logger;
 public class JwtFilter implements Filter {
 
     private static final Logger LOGGER = Logger.getLogger(JwtFilter.class.getName());
-    private OidcConfig oidcConfig;
+    private OidcConfig oidcConfig = new OidcConfig();
 
     @Override
     public void init(FilterConfig filterConfig) {
-        oidcConfig = new OidcConfig();
         LOGGER.info("Auth0 jwtVerifier initialized for issuer:" + oidcConfig.getIssuerUri());
     }
 
@@ -50,7 +49,9 @@ public class JwtFilter implements Filter {
             return;
         } else {
             String accessToken = authHeader.substring(authHeader.indexOf("Bearer ") + 7);
+
             LOGGER.info("accesstoken: " + accessToken);
+
             JwkProvider provider = new UrlJwkProvider(oidcConfig.getIssuerUri());
             try {
                 DecodedJWT jwt = JWT.decode(accessToken);
@@ -64,12 +65,14 @@ public class JwtFilter implements Filter {
                         .build();
 
                 jwt = verifier.verify(accessToken);
+
                 LOGGER.info("JWT decoded. sub=" + jwt.getClaims().get("sub"));
 
                 request.setAttribute("accessToken", jwt);
 
                 String issuerUri = oidcConfig.getIssuerUri();
                 String userinfoUri = issuerUri + "userinfo";
+
                 LOGGER.info("userinfoUri: " + userinfoUri);
 
                 HttpClient client = HttpClient.newHttpClient();
@@ -79,22 +82,28 @@ public class JwtFilter implements Filter {
                         .build();
                 HttpResponse<String> responseIdToken = client.send(requestIdToken, HttpResponse.BodyHandlers.ofString());
                 String idTokenString = responseIdToken.body();
+
                 LOGGER.info("idTokenString: " + idTokenString);
 
                 IdToken idToken = new Gson().fromJson(idTokenString, IdToken.class);
+
                 LOGGER.info("idToken: " + idToken.toString());
 
                 request.setAttribute("idToken", idToken);
 
             } catch (JWTVerificationException | JwkException e) {
                 e.printStackTrace();
+
                 LOGGER.severe("Failed to verify JWT with error message: " + e.getMessage());
+
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getOutputStream().print("Unauthorized");
                 return;
             } catch (InterruptedException e) {
                 e.printStackTrace();
+
                 LOGGER.severe("Failed to retrieve ID Token with error message: " + e.getMessage());
+
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getOutputStream().print("Unauthorized");
                 return;

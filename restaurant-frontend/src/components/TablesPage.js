@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Grid, Paper, Button } from "@mui/material";
+import { Box, Typography, Grid, Paper } from "@mui/material";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
+import "../App.css";
 
 const TablesPage = () => {
-  const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
+  const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
   const [tables, setTables] = useState([]);
   const navigate = useNavigate();
 
@@ -24,7 +25,7 @@ const TablesPage = () => {
         })
         .catch((error) => console.error("Error getting access token:", error));
     }
-  }, [isAuthenticated, getAccessTokenSilently]);
+  }, [isAuthenticated, getAccessTokenSilently, user]);
 
   const handleTableClick = (tableId) => {
     if (isAuthenticated) {
@@ -50,36 +51,18 @@ const TablesPage = () => {
     }
   };
 
-  // Перевірка, чи є користувач адміністратором
-  const isAdmin = user && user.role === "admin"; // Тут вказуємо роль, яку має адміністратор
-
-  // Якщо користувач не авторизований або ще завантажується дані, можна відобразити завантаження
-  if (isLoading) {
-    return <div>Завантаження...</div>;
-  }
-
   if (!isAuthenticated) {
-    return <div>Ви не авторизовані. Будь ласка, увійдіть як адміністратор.</div>;
+    return <div>Ви не авторизовані або у вас немає прав адміністратора.</div>;
   }
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom align="center" sx={{ fontWeight: 'bold' }}>
         Список столиків
       </Typography>
-      {isAdmin && (
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => navigate("/create-order/1")} // Приклад переходу на створення замовлення
-          sx={{ marginBottom: 2 }}
-        >
-          Додати нове замовлення
-        </Button>
-      )}
-      <Grid container spacing={2}>
+      <Grid container spacing={2} justifyContent="center">
         {tables.map((table) => (
-          <Grid item key={table.id} xs={6} sm={4} md={3} lg={2}>
+          <Grid item key={table.id} xs={12} sm={6} md={4} lg={3}>
             <Paper
               sx={{
                 p: 3,
@@ -88,11 +71,18 @@ const TablesPage = () => {
                 borderRadius: 2,
                 boxShadow: 3,
                 cursor: "pointer",
-                "&:hover": { backgroundColor: "#e0e0e0" },
+                transition: "background-color 0.3s ease, transform 0.3s ease",
+                "&:hover": {
+                  backgroundColor: "#e0e0e0",
+                  transform: "scale(1.05)",
+                },
+                border: `1px solid ${table.hasOrder ? "#66bb6a" : "#ff7043"}`, // Green for "hasOrder" and red for "noOrder"
               }}
               onClick={() => handleTableClick(table.id)}
             >
-              <Typography variant="h6">Столик {table.number}</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: table.hasOrder ? '#66bb6a' : '#ff7043' }}>
+                Столик {table.number}
+              </Typography>
               <Typography variant="body2" color="textSecondary">
                 {table.hasOrder ? "Є замовлення" : "Немає замовлення"}
               </Typography>

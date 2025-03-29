@@ -21,11 +21,11 @@
     </filter-mapping>
 
     <filter>
-        <filter-name>AuthFilter</filter-name>
+        <filter-name>JwtFilter</filter-name>
         <filter-class>com.work.restaurant.Filters.JwtFilter</filter-class>
     </filter>
     <filter-mapping>
-        <filter-name>AuthFilter</filter-name>
+        <filter-name>JwtFilter</filter-name>
         <url-pattern>/tables/*</url-pattern>
         <url-pattern>/table-order-details/*</url-pattern>
         <url-pattern>/create-order/*</url-pattern>

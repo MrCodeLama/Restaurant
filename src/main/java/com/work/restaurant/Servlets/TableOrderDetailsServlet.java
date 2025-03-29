@@ -1,6 +1,7 @@
 package com.work.restaurant.Servlets;
 
 import com.google.gson.Gson;
+import com.work.restaurant.Model.OrderItem;
 import com.work.restaurant.Utils.DBUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -24,11 +25,6 @@ public class TableOrderDetailsServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-
         String tableIdParam = request.getParameter("tableId");
         if (tableIdParam == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -45,9 +41,9 @@ public class TableOrderDetailsServlet extends HttpServlet {
             return;
         }
 
-        List<OrderItemDTO> orderItems = new ArrayList<>();
+        List<OrderItem> orderItems = new ArrayList<>();
         String orderQuery = """
-            SELECT mi.name, oi.quantity
+                SELECT mi.name, oi.quantity, mi.price
             FROM orderitem oi
             JOIN menuitem mi ON oi.menu_item_id = mi.id
             JOIN customerorder o ON oi.order_id = o.id
@@ -60,7 +56,7 @@ public class TableOrderDetailsServlet extends HttpServlet {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    orderItems.add(new OrderItemDTO(rs.getString("name"), rs.getInt("quantity")));
+                    orderItems.add(new OrderItem(rs.getString("name"), rs.getInt("quantity"), rs.getDouble("price")));
                 }
             }
         } catch (Exception e) {
@@ -71,16 +67,6 @@ public class TableOrderDetailsServlet extends HttpServlet {
 
         String json = new Gson().toJson(orderItems);
         response.getWriter().write(json);
-    }
-
-    private static class OrderItemDTO {
-        private String name;
-        private int quantity;
-
-        public OrderItemDTO(String name, int quantity) {
-            this.name = name;
-            this.quantity = quantity;
-        }
     }
 }
 
